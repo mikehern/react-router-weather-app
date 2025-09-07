@@ -1,5 +1,12 @@
 import type { Route } from "./+types/index";
-import { useLoaderData, type LoaderFunctionArgs } from "react-router";
+import {
+  Form,
+  redirect,
+  useLoaderData,
+  useNavigation,
+  type ActionFunctionArgs,
+  type LoaderFunctionArgs,
+} from "react-router";
 
 interface WeatherPeriod {
   number: number;
@@ -77,13 +84,59 @@ export function HydrateFallback() {
   );
 }
 
-export default function Home({ loaderData }: Route.ComponentProps) {
+export default function Home({ loaderData, actionData }: Route.ComponentProps) {
   const { message, city, forecast } = useLoaderData<typeof clientLoader>();
+  const navigation = useNavigation();
+  const isSubmitting = navigation.state === "submitting";
   return (
     <div className="max-w-5xl mx-auto my-8">
       <h1 className="text-3xl">{message}</h1>
-      <h2 className="text-xl text-wrap">{city}</h2>
+      <h2 className="text-xl text-wrap">7-day forecast</h2>
       <div className="flex flex-col mt-10">
+        <div className="mb-6">
+          <Form
+            action="/"
+            method="post"
+            className="flex flex-wrap items-center gap-2 mb-3"
+          >
+            <label htmlFor="city" className="font-medium">
+              City
+            </label>
+            <input
+              id="city"
+              name="city"
+              type="text"
+              defaultValue={city}
+              disabled={isSubmitting}
+              className="flex-1 min-w-[240px] px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring focus:ring-blue-200 disabled:bg-gray-100 disabled:text-gray-500"
+            />
+            <button
+              name="intent"
+              value="save"
+              type="submit"
+              disabled={isSubmitting}
+              className="px-4 py-2 rounded-lg border border-gray-300 bg-black text-white transition disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isSubmitting ? "Saving…" : "Save Location"}
+            </button>
+            <button
+              name="intent"
+              value="search"
+              type="submit"
+              disabled={isSubmitting}
+              className="px-4 py-2 rounded-lg border border-gray-300 bg-blue-600 text-white font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isSubmitting ? "Searching…" : "Search"}
+            </button>
+          </Form>
+          {actionData ? (
+            <div className="h-10 text-gray-500">
+              {actionData.saved} Saved to Locations
+            </div>
+          ) : (
+            <div className="h-10"></div>
+          )}
+        </div>
         <div className="space-y-3">
           {forecast.map((p: WeatherPeriod) => (
             <div
@@ -114,4 +167,20 @@ export default function Home({ loaderData }: Route.ComponentProps) {
       </div>
     </div>
   );
+}
+
+export async function clientAction({ request }: ActionFunctionArgs) {
+  const formData = await request.formData();
+  const city = (formData.get("city") as string) ?? "";
+  const intent = formData.get("intent");
+
+  if (intent === "search") {
+    const searchParams = new URLSearchParams({ name: city });
+    return redirect(`/city?${searchParams}`);
+  }
+
+  // add to localStorage instead of cookie for MVP simplicity
+  localStorage.setItem(`${city}`, Date.now().toString());
+
+  return { saved: true, city, timestamp: new Date().toISOString() };
 }
