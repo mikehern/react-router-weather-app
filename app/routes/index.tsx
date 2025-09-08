@@ -1,3 +1,4 @@
+import { addLocation } from "~/utils/localStorage";
 import type { Route } from "./+types/index";
 import {
   Form,
@@ -69,6 +70,8 @@ export async function clientLoader({
   return {
     ...serverData,
     city,
+    latitude,
+    longitude,
     forecast: daytimePeriods.slice(0, 7),
   };
 }
@@ -85,7 +88,8 @@ export function HydrateFallback() {
 }
 
 export default function Home({ loaderData, actionData }: Route.ComponentProps) {
-  const { message, city, forecast } = useLoaderData<typeof clientLoader>();
+  const { message, city, forecast, latitude, longitude } =
+    useLoaderData<typeof clientLoader>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
   return (
@@ -110,6 +114,8 @@ export default function Home({ loaderData, actionData }: Route.ComponentProps) {
               disabled={isSubmitting}
               className="flex-1 min-w-[240px] px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring focus:ring-blue-200 disabled:bg-gray-100 disabled:text-gray-500"
             />
+            <input name="latitude" defaultValue={latitude} hidden />
+            <input name="longitude" defaultValue={longitude} hidden />
             <button
               name="intent"
               value="save"
@@ -129,7 +135,7 @@ export default function Home({ loaderData, actionData }: Route.ComponentProps) {
               {isSubmitting ? "Searching…" : "Search"}
             </button>
           </Form>
-          {actionData ? (
+          {actionData?.saved ? (
             <div className="h-10 text-gray-500">
               {actionData.saved} Saved to Locations
             </div>
@@ -179,8 +185,11 @@ export async function clientAction({ request }: ActionFunctionArgs) {
     return redirect(`/city?${searchParams}`);
   }
 
-  // add to localStorage instead of cookie for MVP simplicity
-  localStorage.setItem(`${city}`, Date.now().toString());
-
+  const latitude = parseFloat((formData.get("latitude") as string) ?? "0");
+  const longitude = parseFloat((formData.get("longitude") as string) ?? "0");
+  const result = addLocation(city, latitude, longitude);
+  if (!result.success) {
+    return { saved: false, error: result.error };
+  }
   return { saved: true, city, timestamp: new Date().toISOString() };
 }
