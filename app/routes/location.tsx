@@ -1,50 +1,42 @@
-import type { Route } from "./+types/index";
+import type { Route } from "./+types/location";
 import { useNavigation, type ActionFunctionArgs } from "react-router";
 import { useState } from "react";
-import { LocationSearchForm } from "~/components/LocationSearchForm";
 import { WeatherForecastList } from "~/components/WeatherForecastList";
-import { getReverseGeocodedName } from "~/services/locationService";
-import { fetchWeatherForecast } from "~/services/weatherService";
+import { LocationSearchForm } from "~/components/LocationSearchForm";
 import { handleLocationAction } from "~/utils/locationActions";
+import { searchLocation } from "~/services/locationService";
+import { fetchWeatherForecast } from "~/services/weatherService";
 
-export async function clientLoader() {
-  const position = await new Promise<GeolocationPosition>((resolve, reject) =>
-    navigator.geolocation.getCurrentPosition(resolve, reject)
+export async function loader({ request }: Route.LoaderArgs) {
+  const url = new URL(request.url);
+  const search = url.searchParams.get("search");
+
+  if (!search) throw new Error("Search query is required");
+
+  const locationData = await searchLocation(search);
+  const weatherData = await fetchWeatherForecast(
+    locationData.latitude,
+    locationData.longitude
   );
-  const { latitude, longitude } = position.coords;
-
-  const locationName = await getReverseGeocodedName(latitude, longitude);
-  const weatherData = await fetchWeatherForecast(latitude, longitude);
-
-  const daytimePeriods = weatherData.forecast;
 
   return {
-    locationName,
-    latitude,
-    longitude,
-    forecast: daytimePeriods.slice(0, 7),
+    locationName: locationData.locationName,
+    latitude: locationData.latitude,
+    longitude: locationData.longitude,
+    forecast: weatherData.forecast.slice(0, 7),
   };
 }
 
-// react-router boilerplate for client-side data fetching during hydration
-clientLoader.hydrate = true;
-
-export function HydrateFallback() {
-  return (
-    <div className="max-w-5xl mx-auto my-8 px-4 font-sans">
-      Waiting for location permission...
-    </div>
-  );
-}
-
-export default function Home({ loaderData, actionData }: Route.ComponentProps) {
+export default function Location({
+  loaderData,
+  actionData,
+}: Route.ComponentProps) {
   const { locationName, forecast, latitude, longitude } = loaderData;
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
 
   const [location, setLocation] = useState(locationName || "");
   const hasValidInput = location.trim().length > 0;
-
   return (
     <>
       <h2 className="text-xl text-wrap">7-day forecast</h2>
