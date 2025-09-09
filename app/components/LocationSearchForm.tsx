@@ -21,7 +21,7 @@ export function LocationSearchForm({
 }: LocationSearchFormProps) {
   return (
     <div className="mb-6">
-      <Form action="/" method="post" className="flex flex-col gap-2 mb-3">
+      <Form method="post" className="flex flex-col gap-2 mb-3">
         <label htmlFor="location" className="text-lg">
           Location
         </label>
