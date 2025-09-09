@@ -6,6 +6,7 @@ import { WeatherForecastList } from "~/components/WeatherForecastList";
 import { getReverseGeocodedName } from "~/services/locationService";
 import { fetchWeatherForecast } from "~/services/weatherService";
 import { handleLocationAction } from "~/utils/locationActions";
+import { CompareWeatherButton } from "~/components/CompareWeatherButton";
 
 export async function clientLoader() {
   const position = await new Promise<GeolocationPosition>((resolve, reject) =>
@@ -45,9 +46,18 @@ export default function Home({ loaderData, actionData }: Route.ComponentProps) {
   const [location, setLocation] = useState(locationName || "");
   const hasValidInput = location.trim().length > 0;
 
+  const currentWeatherData = {
+    forecast,
+    location: locationName,
+    coordinates: { latitude, longitude },
+  };
+
   return (
     <>
-      <h2 className="text-xl text-wrap">7-day forecast</h2>
+      <div className="flex justify-between items-center">
+        <h2 className="text-xl text-wrap">7-day forecast</h2>
+        <CompareWeatherButton currentWeatherData={currentWeatherData} />
+      </div>
       <div className="flex flex-col mt-10">
         <LocationSearchForm
           location={location}

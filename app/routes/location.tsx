@@ -6,6 +6,7 @@ import { LocationSearchForm } from "~/components/LocationSearchForm";
 import { handleLocationAction } from "~/utils/locationActions";
 import { searchLocation } from "~/services/locationService";
 import { fetchWeatherForecast } from "~/services/weatherService";
+import { CompareWeatherButton } from "~/components/CompareWeatherButton";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const url = new URL(request.url);
@@ -36,10 +37,20 @@ export default function Location({
   const isSubmitting = navigation.state === "submitting";
 
   const [location, setLocation] = useState(locationName || "");
+
+  const currentWeatherData = {
+    forecast,
+    location: locationName,
+    coordinates: { latitude, longitude },
+  };
+
   const hasValidInput = location.trim().length > 0;
   return (
     <>
-      <h2 className="text-xl text-wrap">7-day forecast</h2>
+      <div className="flex justify-between items-center">
+        <h2 className="text-xl text-wrap">7-day forecast</h2>
+        <CompareWeatherButton currentWeatherData={currentWeatherData} />
+      </div>
       <div className="flex flex-col mt-10">
         <LocationSearchForm
           location={location}
