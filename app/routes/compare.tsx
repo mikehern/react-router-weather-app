@@ -1,6 +1,6 @@
 import type { Route } from "./+types/compare";
 import { useLocation, useNavigate } from "react-router";
-import { WeatherForecastList } from "~/components/WeatherForecastList";
+import { DailyForecastList } from "~/components/DailyForecastList";
 import { fetchWeatherForecast } from "~/services/weatherService";
 import type { WeatherPeriod } from "~/types/weather";
 
@@ -51,12 +51,12 @@ export default function Compare({ loaderData }: Route.ComponentProps) {
 
       <div>
         <p className="text-lg font-bold">{currentWeather.location}</p>
-        <WeatherForecastList forecast={currentWeather.forecast} />
+        <DailyForecastList forecast={currentWeather.forecast} />
       </div>
 
       <div className="mt-12">
         <p className="text-lg font-bold">{comparisonLocation}</p>
-        <WeatherForecastList forecast={comparisonWeather} />
+        <DailyForecastList forecast={comparisonWeather} />
       </div>
 
       <div className="mt-12 text-center">
