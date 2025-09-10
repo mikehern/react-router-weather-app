@@ -1,12 +1,13 @@
 import type { Route } from "./+types/location";
 import { useNavigation, type ActionFunctionArgs } from "react-router";
 import { useState } from "react";
-import { WeatherForecastList } from "~/components/WeatherForecastList";
+import { DailyForecastList } from "~/components/DailyForecastList";
 import { LocationSearchForm } from "~/components/LocationSearchForm";
 import { handleLocationAction } from "~/utils/locationActions";
 import { searchLocation } from "~/services/locationService";
 import { fetchWeatherForecast } from "~/services/weatherService";
 import { CompareWeatherButton } from "~/components/CompareWeatherButton";
+import { HourlyForecastList } from "~/components/HourlyForecastList";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const url = new URL(request.url);
@@ -25,6 +26,7 @@ export async function loader({ request }: Route.LoaderArgs) {
     latitude: locationData.latitude,
     longitude: locationData.longitude,
     forecast: weatherData.forecast.slice(0, 7),
+    hourlyForecast: weatherData.hourlyForecast,
   };
 }
 
@@ -32,7 +34,8 @@ export default function Location({
   loaderData,
   actionData,
 }: Route.ComponentProps) {
-  const { locationName, forecast, latitude, longitude } = loaderData;
+  const { locationName, forecast, hourlyForecast, latitude, longitude } =
+    loaderData;
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
 
@@ -61,7 +64,8 @@ export default function Location({
           longitude={longitude}
           actionData={actionData}
         />
-        <WeatherForecastList forecast={forecast} />
+        <DailyForecastList forecast={forecast} />
+        <HourlyForecastList hourlyForecast={hourlyForecast} />
       </div>
     </>
   );

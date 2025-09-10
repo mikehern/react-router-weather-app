@@ -2,11 +2,12 @@ import type { Route } from "./+types/index";
 import { useNavigation, type ActionFunctionArgs } from "react-router";
 import { useState } from "react";
 import { LocationSearchForm } from "~/components/LocationSearchForm";
-import { WeatherForecastList } from "~/components/WeatherForecastList";
+import { DailyForecastList } from "~/components/DailyForecastList";
 import { getReverseGeocodedName } from "~/services/locationService";
 import { fetchWeatherForecast } from "~/services/weatherService";
 import { handleLocationAction } from "~/utils/locationActions";
 import { CompareWeatherButton } from "~/components/CompareWeatherButton";
+import { HourlyForecastList } from "~/components/HourlyForecastList";
 
 export async function clientLoader() {
   const position = await new Promise<GeolocationPosition>((resolve, reject) =>
@@ -24,6 +25,7 @@ export async function clientLoader() {
     latitude,
     longitude,
     forecast: daytimePeriods.slice(0, 7),
+    hourlyForecast: weatherData.hourlyForecast,
   };
 }
 
@@ -39,7 +41,8 @@ export function HydrateFallback() {
 }
 
 export default function Home({ loaderData, actionData }: Route.ComponentProps) {
-  const { locationName, forecast, latitude, longitude } = loaderData;
+  const { locationName, forecast, latitude, longitude, hourlyForecast } =
+    loaderData;
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
 
@@ -55,7 +58,6 @@ export default function Home({ loaderData, actionData }: Route.ComponentProps) {
   return (
     <>
       <div className="flex justify-between items-center">
-        <h2 className="text-xl text-wrap">7-day forecast</h2>
         <CompareWeatherButton currentWeatherData={currentWeatherData} />
       </div>
       <div className="flex flex-col mt-10">
@@ -68,7 +70,9 @@ export default function Home({ loaderData, actionData }: Route.ComponentProps) {
           longitude={longitude}
           actionData={actionData}
         />
-        <WeatherForecastList forecast={forecast} />
+
+        <DailyForecastList forecast={forecast} />
+        <HourlyForecastList hourlyForecast={hourlyForecast} />
       </div>
     </>
   );
