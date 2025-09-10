@@ -51,7 +51,7 @@ export default function Location({
   return (
     <>
       <div className="flex justify-between items-center">
-        <h2 className="text-xl text-wrap">7-day forecast</h2>
+        <h2 className="text-2xl text-wrap font-black">Forecast</h2>
         <CompareWeatherButton currentWeatherData={currentWeatherData} />
       </div>
       <div className="flex flex-col mt-10">
@@ -63,6 +63,7 @@ export default function Location({
           latitude={latitude}
           longitude={longitude}
           actionData={actionData}
+          displayedLocationName={locationName}
         />
         <DailyForecastList forecast={forecast} />
         <HourlyForecastList hourlyForecast={hourlyForecast} />

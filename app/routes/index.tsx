@@ -58,6 +58,7 @@ export default function Home({ loaderData, actionData }: Route.ComponentProps) {
   return (
     <>
       <div className="flex justify-between items-center">
+        <h2 className="text-2xl text-wrap font-black">Forecast</h2>
         <CompareWeatherButton currentWeatherData={currentWeatherData} />
       </div>
       <div className="flex flex-col mt-10">
@@ -69,6 +70,7 @@ export default function Home({ loaderData, actionData }: Route.ComponentProps) {
           latitude={latitude}
           longitude={longitude}
           actionData={actionData}
+          displayedLocationName={locationName}
         />
 
         <DailyForecastList forecast={forecast} />
