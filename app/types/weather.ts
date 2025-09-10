@@ -17,3 +17,9 @@ export interface WeatherPeriod {
   shortForecast: string;
   detailedForecast: string;
 }
+
+export interface CurrentWeatherData {
+  forecast: WeatherPeriod[];
+  location: string;
+  coordinates: { latitude: number; longitude: number };
+}

@@ -1,5 +1,6 @@
 import { Link } from "react-router";
 import { getStoredLocations, getLocation } from "~/utils/localStorage";
+import { buildCompareUrl } from "~/utils/transforms";
 
 interface SavedLocationModalProps {
   isOpen: boolean;
@@ -55,7 +56,11 @@ export function SavedLocationModal({
               return (
                 <div key={locationName}>
                   <Link
-                    to={`/compare?name=${encodeURIComponent(locationName)}&lat=${locationData.lat}&lon=${locationData.lon}`}
+                    to={buildCompareUrl(
+                      currentWeatherData,
+                      locationData,
+                      locationName
+                    )}
                     state={currentWeatherData}
                     className="mb-8"
                   >

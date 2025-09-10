@@ -1,15 +1,16 @@
 import type { Route } from "./+types/compare";
-import { useLocation, useNavigate } from "react-router";
+import { useNavigate } from "react-router";
 import { DailyForecastList } from "~/components/DailyForecastList";
 import { PrecipitationComparisonChart } from "~/components/PrecipitationComparisonChart";
 import { TemperatureComparisonChart } from "~/components/TemperatureComparisonChart";
 import { fetchWeatherForecast } from "~/services/weatherService";
 import type { WeatherPeriod } from "~/types/weather";
 
-interface CurrentWeather {
-  forecast: WeatherPeriod[];
-  location: string;
-  coordinates: { latitude: number; longitude: number };
+interface CompareLoaderData {
+  currentWeather: WeatherPeriod[];
+  currentLocation: string;
+  comparisonWeather: WeatherPeriod[];
+  comparisonLocation: string;
 }
 
 interface CompareLoaderData {
@@ -22,28 +23,47 @@ export async function loader({
 }: Route.LoaderArgs): Promise<CompareLoaderData> {
   const url = new URL(request.url);
 
-  const name = url.searchParams.get("name");
-  const lat = parseFloat(url.searchParams.get("lat") || "0");
-  const lon = parseFloat(url.searchParams.get("lon") || "0");
+  const currentName = url.searchParams.get("currentName");
+  const currentLat = parseFloat(url.searchParams.get("currentLat") || "0");
+  const currentLon = parseFloat(url.searchParams.get("currentLon") || "0");
 
-  if (!name || !lat || !lon) {
-    throw new Error("Missing comparison location parameters");
+  const compareName = url.searchParams.get("compareName");
+  const compareLat = parseFloat(url.searchParams.get("compareLat") || "0");
+  const compareLon = parseFloat(url.searchParams.get("compareLon") || "0");
+
+  if (
+    !currentName ||
+    !currentLat ||
+    !currentLon ||
+    !compareName ||
+    !compareLat ||
+    !compareLon
+  ) {
+    throw new Error("Missing location parameters for comparison");
   }
 
-  const comparisonWeatherData = await fetchWeatherForecast(lat, lon);
+  const [currentWeatherData, comparisonWeatherData] = await Promise.all([
+    fetchWeatherForecast(currentLat, currentLon),
+    fetchWeatherForecast(compareLat, compareLon),
+  ]);
 
   return {
+    currentWeather: currentWeatherData.forecast,
+    currentLocation: currentName,
     comparisonWeather: comparisonWeatherData.forecast,
-    comparisonLocation: name,
+    comparisonLocation: compareName,
   };
 }
 
 export default function Compare({ loaderData }: Route.ComponentProps) {
-  const location = useLocation();
   const navigate = useNavigate();
-  const { comparisonWeather, comparisonLocation } = loaderData;
 
-  const currentWeather = location.state as CurrentWeather;
+  const {
+    currentWeather,
+    currentLocation,
+    comparisonWeather,
+    comparisonLocation,
+  } = loaderData;
 
   return (
     <div className="max-w-7xl ">
@@ -52,8 +72,8 @@ export default function Compare({ loaderData }: Route.ComponentProps) {
       </h1>
 
       <div>
-        <p className="text-lg font-bold">{currentWeather.location}</p>
-        <DailyForecastList forecast={currentWeather.forecast} />
+        <p className="text-lg font-bold">{currentLocation}</p>
+        <DailyForecastList forecast={currentWeather} />
       </div>
 
       <div className="mt-12">
@@ -62,17 +82,17 @@ export default function Compare({ loaderData }: Route.ComponentProps) {
       </div>
       <div className="mt-24">
         <TemperatureComparisonChart
-          currentWeather={currentWeather.forecast}
+          currentWeather={currentWeather}
           comparisonWeather={comparisonWeather}
-          currentLocation={currentWeather.location}
+          currentLocation={currentLocation}
           comparisonLocation={comparisonLocation}
         />
       </div>
       <div className="mt-24">
         <PrecipitationComparisonChart
-          currentWeather={currentWeather.forecast}
+          currentWeather={currentWeather}
           comparisonWeather={comparisonWeather}
-          currentLocation={currentWeather.location}
+          currentLocation={currentLocation}
           comparisonLocation={comparisonLocation}
         />
       </div>
