@@ -1,6 +1,7 @@
 import type { Route } from "./+types/compare";
 import { useLocation, useNavigate } from "react-router";
 import { DailyForecastList } from "~/components/DailyForecastList";
+import { PrecipitationComparisonChart } from "~/components/PrecipitationComparisonChart";
 import { TemperatureComparisonChart } from "~/components/TemperatureComparisonChart";
 import { fetchWeatherForecast } from "~/services/weatherService";
 import type { WeatherPeriod } from "~/types/weather";
@@ -67,7 +68,14 @@ export default function Compare({ loaderData }: Route.ComponentProps) {
           comparisonLocation={comparisonLocation}
         />
       </div>
-
+      <div className="mt-24">
+        <PrecipitationComparisonChart
+          currentWeather={currentWeather.forecast}
+          comparisonWeather={comparisonWeather}
+          currentLocation={currentWeather.location}
+          comparisonLocation={comparisonLocation}
+        />
+      </div>
       <div className="mt-12 text-center">
         <div className="flex flex-wrap justify-center gap-4">
           <button
