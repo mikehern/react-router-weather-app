@@ -8,6 +8,7 @@ import { searchLocation } from "~/services/locationService";
 import { fetchWeatherForecast } from "~/services/weatherService";
 import { CompareWeatherButton } from "~/components/CompareWeatherButton";
 import { HourlyForecastList } from "~/components/HourlyForecastList";
+import { ErrorBoundary as SharedErrorBoundary } from "~/components/ErrorBoundary";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const url = new URL(request.url);
@@ -74,4 +75,13 @@ export default function Location({
 
 export async function clientAction({ request }: ActionFunctionArgs) {
   return handleLocationAction(request);
+}
+
+export function ErrorBoundary({ error }: { error: Error }) {
+  return (
+    <SharedErrorBoundary
+      error={error}
+      title="Issue With Search Location Page"
+    />
+  );
 }

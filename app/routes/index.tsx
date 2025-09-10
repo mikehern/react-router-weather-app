@@ -8,6 +8,7 @@ import { fetchWeatherForecast } from "~/services/weatherService";
 import { handleLocationAction } from "~/utils/locationActions";
 import { CompareWeatherButton } from "~/components/CompareWeatherButton";
 import { HourlyForecastList } from "~/components/HourlyForecastList";
+import { ErrorBoundary as SharedErrorBoundary } from "~/components/ErrorBoundary";
 
 export async function clientLoader() {
   const position = await new Promise<GeolocationPosition>((resolve, reject) =>
@@ -82,4 +83,8 @@ export default function Home({ loaderData, actionData }: Route.ComponentProps) {
 
 export async function clientAction({ request }: ActionFunctionArgs) {
   return handleLocationAction(request);
+}
+
+export function ErrorBoundary({ error }: { error: Error }) {
+  return <SharedErrorBoundary error={error} title="Issue With Initial Page" />;
 }

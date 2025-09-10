@@ -5,6 +5,7 @@ import { PrecipitationComparisonChart } from "~/components/PrecipitationComparis
 import { TemperatureComparisonChart } from "~/components/TemperatureComparisonChart";
 import { fetchWeatherForecast } from "~/services/weatherService";
 import type { WeatherPeriod } from "~/types/weather";
+import { ErrorBoundary as SharedErrorBoundary } from "~/components/ErrorBoundary";
 
 interface CompareLoaderData {
   currentWeather: WeatherPeriod[];
@@ -107,5 +108,14 @@ export default function Compare({ loaderData }: Route.ComponentProps) {
         </div>
       </div>
     </div>
+  );
+}
+
+export function ErrorBoundary({ error }: { error: Error }) {
+  return (
+    <SharedErrorBoundary
+      error={error}
+      title="Issue With Weather Comparison Page"
+    />
   );
 }
