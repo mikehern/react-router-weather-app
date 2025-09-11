@@ -14,21 +14,37 @@ export async function loader({ request }: Route.LoaderArgs) {
   const url = new URL(request.url);
   const search = url.searchParams.get("search");
 
-  if (!search) throw new Error("Search query is required");
+  if (!search) {
+    throw new Response("Search query is required", { status: 400 });
+  }
 
-  const locationData = await searchLocation(search);
-  const weatherData = await fetchWeatherForecast(
-    locationData.latitude,
-    locationData.longitude
-  );
+  try {
+    const locationData = await searchLocation(search);
+    const weatherData = await fetchWeatherForecast(
+      locationData.latitude,
+      locationData.longitude
+    );
 
-  return {
-    locationName: locationData.locationName,
-    latitude: locationData.latitude,
-    longitude: locationData.longitude,
-    forecast: weatherData.forecast.slice(0, 7),
-    hourlyForecast: weatherData.hourlyForecast,
-  };
+    return {
+      success: true,
+      locationName: locationData.locationName,
+      latitude: locationData.latitude,
+      longitude: locationData.longitude,
+      forecast: weatherData.forecast.slice(0, 7),
+      hourlyForecast: weatherData.hourlyForecast,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error:
+        error instanceof Error ? error.message : "Failed to fetch weather data",
+      locationName: search,
+      latitude: 0,
+      longitude: 0,
+      forecast: [],
+      hourlyForecast: [],
+    };
+  }
 }
 
 export default function Location({
@@ -42,18 +58,21 @@ export default function Location({
 
   const [location, setLocation] = useState(locationName || "");
 
+  const hasValidInput = location.trim().length > 0;
+
+  const hasResults = forecast.length > 0 && hourlyForecast.length > 0;
   const currentWeatherData = {
     forecast,
     location: locationName,
     coordinates: { latitude, longitude },
   };
-
-  const hasValidInput = location.trim().length > 0;
   return (
     <>
       <div className="flex justify-between items-center">
         <h2 className="text-2xl text-wrap font-black">Forecast</h2>
-        <CompareWeatherButton currentWeatherData={currentWeatherData} />
+        {hasResults && (
+          <CompareWeatherButton currentWeatherData={currentWeatherData} />
+        )}
       </div>
       <div className="flex flex-col mt-10">
         <LocationSearchForm
@@ -66,8 +85,18 @@ export default function Location({
           actionData={actionData}
           displayedLocationName={locationName}
         />
-        <DailyForecastList forecast={forecast} />
-        <HourlyForecastList hourlyForecast={hourlyForecast} />
+
+        {hasResults ? (
+          <>
+            <DailyForecastList forecast={forecast} />
+            <HourlyForecastList hourlyForecast={hourlyForecast} />
+          </>
+        ) : (
+          <div className="p-4 text-xl">
+            No results found. Please enter a city and state or check the
+            spelling of the location.
+          </div>
+        )}
       </div>
     </>
   );
