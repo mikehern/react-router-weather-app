@@ -1,5 +1,9 @@
 import type { Route } from "./+types/location";
-import { useNavigation, type ActionFunctionArgs } from "react-router";
+import {
+  isRouteErrorResponse,
+  useNavigation,
+  type ActionFunctionArgs,
+} from "react-router";
 import { useState } from "react";
 import { DailyForecastList } from "~/components/DailyForecastList";
 import { LocationSearchForm } from "~/components/LocationSearchForm";
@@ -106,11 +110,15 @@ export async function clientAction({ request }: ActionFunctionArgs) {
   return handleLocationAction(request);
 }
 
-export function ErrorBoundary({ error }: { error: Error }) {
+export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
+  const errorMessage = isRouteErrorResponse(error)
+    ? error.data
+    : (error as Error).message || "An unexpected error occurred";
+
   return (
     <SharedErrorBoundary
-      error={error}
-      title="Issue With Search Location Page"
+      message={errorMessage}
+      title="Issue With Weather Location Search Page"
     />
   );
 }

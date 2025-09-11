@@ -1,5 +1,9 @@
 import type { Route } from "./+types/index";
-import { useNavigation, type ActionFunctionArgs } from "react-router";
+import {
+  isRouteErrorResponse,
+  useNavigation,
+  type ActionFunctionArgs,
+} from "react-router";
 import { useState } from "react";
 import { LocationSearchForm } from "~/components/LocationSearchForm";
 import { DailyForecastList } from "~/components/DailyForecastList";
@@ -160,6 +164,15 @@ export async function clientAction({ request }: ActionFunctionArgs) {
   return handleLocationAction(request);
 }
 
-export function ErrorBoundary({ error }: { error: Error }) {
-  return <SharedErrorBoundary error={error} title="Issue With Initial Page" />;
+export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
+  const errorMessage = isRouteErrorResponse(error)
+    ? error.data
+    : (error as Error).message || "An unexpected error occurred";
+
+  return (
+    <SharedErrorBoundary
+      message={errorMessage}
+      title="Issue With Weather Home Page"
+    />
+  );
 }

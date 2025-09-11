@@ -11,9 +11,23 @@ export async function getReverseGeocodedName(
       },
     }
   );
-  if (!reverseGeoApi.ok) throw new Error(`Reverse geocoding failed`);
-  const reverseGeoData = await reverseGeoApi.json();
-  return reverseGeoData.display_name || "Unknown Location";
+
+  if (!reverseGeoApi.ok) {
+    throw new Response(
+      `Unable to determine location name. Please check your coordinates.`,
+      { status: reverseGeoApi.status }
+    );
+  }
+
+  try {
+    const reverseGeoData = await reverseGeoApi.json();
+    return reverseGeoData.display_name || "Unknown Location";
+  } catch {
+    throw new Response(
+      `Location service returned invalid data. Please try again.`,
+      { status: 502 }
+    );
+  }
 }
 
 export async function searchLocation(searchQuery: string) {
@@ -27,16 +41,31 @@ export async function searchLocation(searchQuery: string) {
     }
   );
 
-  //TODO: handle API error in UI gracefully
   if (!res.ok) {
-    throw new Error("Failed to fetch location data");
+    throw new Response(
+      `Unable to search for "${searchQuery}". The location service is temporarily 
+  unavailable.`,
+      { status: res.status }
+    );
   }
 
-  const data = await res.json();
+  let data;
 
-  //TODO: handle no results in UI gracefully
-  if (data.length === 0) {
-    throw new Error("No results found");
+  try {
+    data = await res.json();
+  } catch (error) {
+    throw new Response(
+      `Location service returned invalid data. Please try again.`,
+      { status: 502 }
+    );
+  }
+
+  if (!Array.isArray(data) || data.length === 0) {
+    throw new Response(
+      `No locations found for "${searchQuery}". Try a different search term or check the 
+  spelling.`,
+      { status: 404 }
+    );
   }
 
   const result = data[0];

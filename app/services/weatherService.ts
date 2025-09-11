@@ -13,8 +13,25 @@ export async function fetchWeatherForecast(
   const weatherApi = await fetch(
     `https://api.weather.gov/points/${latitude},${longitude}`
   );
-  if (!weatherApi.ok) throw new Error(`Points failed`);
-  const data = await weatherApi.json();
+
+  if (!weatherApi.ok) {
+    throw new Response(
+      `Weather service is temporarily unavailable. Please try again later.`,
+      { status: weatherApi.status }
+    );
+  }
+
+  let data;
+
+  try {
+    data = await weatherApi.json();
+  } catch {
+    throw new Response(
+      `Weather service returned invalid data. Please try again.`,
+      { status: 502 }
+    );
+  }
+
   const { forecast, forecastHourly } = data.properties;
 
   const [forecastResponse, hourlyResponse] = await Promise.all([

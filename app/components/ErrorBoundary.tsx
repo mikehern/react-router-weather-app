@@ -1,5 +1,5 @@
 interface ErrorBoundaryProps {
-  error: Error;
+  error?: Error;
   title?: string;
   message?: string;
 }

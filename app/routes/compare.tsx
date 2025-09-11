@@ -1,5 +1,5 @@
 import type { Route } from "./+types/compare";
-import { useNavigate } from "react-router";
+import { isRouteErrorResponse, useNavigate } from "react-router";
 import { DailyForecastList } from "~/components/DailyForecastList";
 import { PrecipitationComparisonChart } from "~/components/PrecipitationComparisonChart";
 import { TemperatureComparisonChart } from "~/components/TemperatureComparisonChart";
@@ -140,10 +140,14 @@ export default function Compare({ loaderData }: Route.ComponentProps) {
   );
 }
 
-export function ErrorBoundary({ error }: { error: Error }) {
+export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
+  const errorMessage = isRouteErrorResponse(error)
+    ? error.data
+    : (error as Error).message || "An unexpected error occurred";
+
   return (
     <SharedErrorBoundary
-      error={error}
+      message={errorMessage}
       title="Issue With Weather Comparison Page"
     />
   );
