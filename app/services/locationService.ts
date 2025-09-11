@@ -6,7 +6,7 @@ export async function getReverseGeocodedName(
     `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`,
     {
       headers: {
-        "user-agent": "react-router-weather-app",
+        "user-agent": "react-router-weather-app (mikeh@gmail.com)",
         accept: "application/json",
       },
     }
@@ -35,7 +35,7 @@ export async function searchLocation(searchQuery: string) {
     `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}`,
     {
       headers: {
-        "user-agent": "react-router-weather-app",
+        "user-agent": "react-router-weather-app (mikeh@gmail.com)",
         accept: "application/json",
       },
     }
