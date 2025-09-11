@@ -14,11 +14,6 @@ interface CompareLoaderData {
   comparisonLocation: string;
 }
 
-interface CompareLoaderData {
-  comparisonWeather: WeatherPeriod[];
-  comparisonLocation: string;
-}
-
 export async function loader({
   request,
 }: Route.LoaderArgs): Promise<CompareLoaderData> {
