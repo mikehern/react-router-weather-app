@@ -40,18 +40,27 @@ export async function loader({
     !compareLat ||
     !compareLon
   ) {
-    throw new Error("Missing location parameters for comparison");
+    throw new Response("Missing location parameters for comparison", {
+      status: 400,
+    });
   }
 
-  const [currentWeatherData, comparisonWeatherData] = await Promise.all([
+  // allow partial results if one API call fails
+  const results = await Promise.allSettled([
     fetchWeatherForecast(currentLat, currentLon),
     fetchWeatherForecast(compareLat, compareLon),
   ]);
 
+  const [currentResult, comparisonResult] = results;
+
   return {
-    currentWeather: currentWeatherData.forecast,
+    currentWeather:
+      currentResult.status === "fulfilled" ? currentResult.value.forecast : [],
     currentLocation: currentName,
-    comparisonWeather: comparisonWeatherData.forecast,
+    comparisonWeather:
+      comparisonResult.status === "fulfilled"
+        ? comparisonResult.value.forecast
+        : [],
     comparisonLocation: compareName,
   };
 }
@@ -66,37 +75,62 @@ export default function Compare({ loaderData }: Route.ComponentProps) {
     comparisonLocation,
   } = loaderData;
 
+  const hasCurrentData = currentWeather.length > 0;
+  const hasComparisonData = comparisonWeather.length > 0;
+  const hasBothData = hasCurrentData && hasComparisonData;
+
   return (
-    <div className="max-w-7xl ">
+    <div className="max-w-7xl">
       <h1 className="text-4xl font-bold text-gray-800 mb-8">
         Weather Comparison
       </h1>
 
       <div>
         <p className="text-lg font-bold">{currentLocation}</p>
-        <DailyForecastList forecast={currentWeather} />
+        {hasCurrentData ? (
+          <DailyForecastList forecast={currentWeather} />
+        ) : (
+          <div className="p-4 text-xl text-red-600">
+            No weather data available for {currentLocation}
+          </div>
+        )}
       </div>
 
       <div className="mt-12">
         <p className="text-lg font-bold">{comparisonLocation}</p>
-        <DailyForecastList forecast={comparisonWeather} />
+        {hasComparisonData ? (
+          <DailyForecastList forecast={comparisonWeather} />
+        ) : (
+          <div className="p-4 text-xl text-red-600">
+            No weather data available for {comparisonLocation}
+          </div>
+        )}
       </div>
-      <div className="mt-24">
-        <TemperatureComparisonChart
-          currentWeather={currentWeather}
-          comparisonWeather={comparisonWeather}
-          currentLocation={currentLocation}
-          comparisonLocation={comparisonLocation}
-        />
-      </div>
-      <div className="mt-24">
-        <PrecipitationComparisonChart
-          currentWeather={currentWeather}
-          comparisonWeather={comparisonWeather}
-          currentLocation={currentLocation}
-          comparisonLocation={comparisonLocation}
-        />
-      </div>
+
+      {/* Only show charts if both locations have data */}
+      {hasBothData ? (
+        <>
+          <div className="mt-24">
+            <TemperatureComparisonChart
+              currentWeather={currentWeather}
+              comparisonWeather={comparisonWeather}
+              currentLocation={currentLocation}
+              comparisonLocation={comparisonLocation}
+            />
+          </div>
+          <div className="mt-24">
+            <PrecipitationComparisonChart
+              currentWeather={currentWeather}
+              comparisonWeather={comparisonWeather}
+              currentLocation={currentLocation}
+              comparisonLocation={comparisonLocation}
+            />
+          </div>
+        </>
+      ) : (
+        <div></div>
+      )}
+
       <div className="mt-12 text-center">
         <div className="flex flex-wrap justify-center gap-4">
           <button
