@@ -11,23 +11,69 @@ import { HourlyForecastList } from "~/components/HourlyForecastList";
 import { ErrorBoundary as SharedErrorBoundary } from "~/components/ErrorBoundary";
 
 export async function clientLoader() {
-  const position = await new Promise<GeolocationPosition>((resolve, reject) =>
-    navigator.geolocation.getCurrentPosition(resolve, reject)
-  );
-  const { latitude, longitude } = position.coords;
+  try {
+    const position = await new Promise<GeolocationPosition>(
+      (resolve, reject) => {
+        if (!navigator.geolocation) {
+          reject(new Error("Geolocation is not supported by this browser"));
+          return;
+        }
 
-  const locationName = await getReverseGeocodedName(latitude, longitude);
-  const weatherData = await fetchWeatherForecast(latitude, longitude);
+        navigator.geolocation.getCurrentPosition(resolve, reject, {
+          timeout: 10000,
+        });
+      }
+    );
 
-  const daytimePeriods = weatherData.forecast;
+    const { latitude, longitude } = position.coords;
 
-  return {
-    locationName,
-    latitude,
-    longitude,
-    forecast: daytimePeriods.slice(0, 7),
-    hourlyForecast: weatherData.hourlyForecast,
-  };
+    const [locationName, weatherData] = await Promise.all([
+      getReverseGeocodedName(latitude, longitude).catch(
+        () => "Unknown Location"
+      ),
+      fetchWeatherForecast(latitude, longitude),
+    ]);
+
+    const daytimePeriods = weatherData.forecast;
+
+    return {
+      locationName,
+      latitude,
+      longitude,
+      forecast: daytimePeriods.slice(0, 7),
+      hourlyForecast: weatherData.hourlyForecast,
+      hasGeolocation: true,
+    };
+  } catch (error) {
+    let errorMessage = "Unable to get your location";
+
+    if (error instanceof GeolocationPositionError) {
+      switch (error.code) {
+        case error.PERMISSION_DENIED:
+          errorMessage =
+            "Location access denied. Please search for a city instead.";
+          break;
+        case error.POSITION_UNAVAILABLE:
+          errorMessage =
+            "Location information unavailable. Please search for a city.";
+          break;
+        case error.TIMEOUT:
+          errorMessage =
+            "Location request timed out. Please search for a city.";
+          break;
+      }
+    }
+
+    return {
+      locationName: null,
+      latitude: null,
+      longitude: null,
+      forecast: [],
+      hourlyForecast: [],
+      hasGeolocation: false,
+      error: errorMessage,
+    };
+  }
 }
 
 // react-router boilerplate for client-side data fetching during hydration
@@ -42,18 +88,47 @@ export function HydrateFallback() {
 }
 
 export default function Home({ loaderData, actionData }: Route.ComponentProps) {
-  const { locationName, forecast, latitude, longitude, hourlyForecast } =
-    loaderData;
+  const {
+    locationName,
+    forecast,
+    latitude,
+    longitude,
+    hourlyForecast,
+    error,
+    hasGeolocation,
+  } = loaderData;
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
 
   const [location, setLocation] = useState(locationName || "");
   const hasValidInput = location.trim().length > 0;
 
+  // if geolocation was skipped or failed, show search form with error (if any)
+  if (error && !hasGeolocation) {
+    return (
+      <div className="mx-auto px-4 py-8">
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+          <p className="text-yellow-800">{error}</p>
+        </div>
+        <LocationSearchForm
+          location={location}
+          setLocation={setLocation}
+          isSubmitting={isSubmitting}
+          hasValidInput={hasValidInput}
+          latitude={0}
+          longitude={0}
+          actionData={actionData}
+          displayedLocationName=""
+        />
+      </div>
+    );
+  }
+
+  // assert values are present after handling skipped geolocation
   const currentWeatherData = {
     forecast,
-    location: locationName,
-    coordinates: { latitude, longitude },
+    location: locationName!,
+    coordinates: { latitude: latitude!, longitude: longitude! },
   };
 
   return (
@@ -68,10 +143,10 @@ export default function Home({ loaderData, actionData }: Route.ComponentProps) {
           setLocation={setLocation}
           isSubmitting={isSubmitting}
           hasValidInput={hasValidInput}
-          latitude={latitude}
-          longitude={longitude}
+          latitude={latitude!}
+          longitude={longitude!}
           actionData={actionData}
-          displayedLocationName={locationName}
+          displayedLocationName={locationName!}
         />
 
         <DailyForecastList forecast={forecast} />
