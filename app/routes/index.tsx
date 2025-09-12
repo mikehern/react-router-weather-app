@@ -107,7 +107,7 @@ export default function Home({ loaderData, actionData }: Route.ComponentProps) {
   const [location, setLocation] = useState(locationName || "");
   const hasValidInput = location.trim().length > 0;
 
-  // if geolocation was skipped or failed, show search form with error (if any)
+  // graceful UX fallback when geolocation is skipped or fails to still allow search
   if (error && !hasGeolocation) {
     return (
       <div className="mx-auto px-4 py-8">
@@ -122,7 +122,6 @@ export default function Home({ loaderData, actionData }: Route.ComponentProps) {
           latitude={0}
           longitude={0}
           actionData={actionData}
-          displayedLocationName=""
         />
       </div>
     );
@@ -150,7 +149,6 @@ export default function Home({ loaderData, actionData }: Route.ComponentProps) {
           latitude={latitude!}
           longitude={longitude!}
           actionData={actionData}
-          displayedLocationName={locationName!}
         />
 
         <DailyForecastList forecast={forecast} />

@@ -8,7 +8,6 @@ interface LocationSearchFormProps {
   latitude: number;
   longitude: number;
   actionData?: { saved?: boolean | string; error?: string };
-  displayedLocationName: string;
 }
 
 export function LocationSearchForm({
@@ -19,10 +18,8 @@ export function LocationSearchForm({
   latitude,
   longitude,
   actionData,
-  displayedLocationName,
 }: LocationSearchFormProps) {
-  const canSave =
-    hasValidInput && location.trim() === displayedLocationName.trim();
+  const canSave = hasValidInput && latitude !== 0 && longitude !== 0;
   const inputDescribedBy = actionData?.error
     ? "location-help location-error"
     : "location-help";

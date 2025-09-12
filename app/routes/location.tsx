@@ -87,7 +87,6 @@ export default function Location({
           latitude={latitude}
           longitude={longitude}
           actionData={actionData}
-          displayedLocationName={locationName}
         />
 
         {hasResults ? (
