@@ -34,7 +34,7 @@ export function TemperatureComparisonChart({
   const temperatureOptions: AgChartOptions<TempDeltaDatum> = {
     data: chartData,
     title: {
-      text: `${getFirstPart(comparisonLocation)} vs ${getFirstPart(
+      text: `${getFirstPart(comparisonLocation)} relative to ${getFirstPart(
         currentLocation
       )}`,
       fontWeight: "bold",
