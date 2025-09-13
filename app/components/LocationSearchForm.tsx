@@ -1,4 +1,5 @@
 import { Form } from "react-router";
+import { getLocationNameByCoordinates } from "~/utils/localStorage";
 
 interface LocationSearchFormProps {
   location: string;
@@ -19,7 +20,12 @@ export function LocationSearchForm({
   longitude,
   actionData,
 }: LocationSearchFormProps) {
-  const canSave = hasValidInput && latitude !== 0 && longitude !== 0;
+  const existingLocationName = getLocationNameByCoordinates(
+    latitude,
+    longitude,
+  );
+  const canSave =
+    hasValidInput && latitude !== 0 && longitude !== 0 && !existingLocationName;
   const inputDescribedBy = actionData?.error
     ? "location-help location-error"
     : "location-help";

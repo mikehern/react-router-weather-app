@@ -17,7 +17,7 @@ export function getStoredLocations(): StoredLocations {
 export function addLocation(
   name: string,
   lat: number,
-  lon: number
+  lon: number,
 ): { success: boolean; error?: string } {
   const locations = getStoredLocations();
 
@@ -51,4 +51,24 @@ export function getLocation(name: string): Location | null {
 
 export function getAllLocationNames(): string[] {
   return Object.keys(getStoredLocations());
+}
+
+function getCoordinateKey(lat: number, lon: number): string {
+  return `${lat.toFixed(4)},${lon.toFixed(4)}`;
+}
+
+export function getLocationNameByCoordinates(
+  lat: number,
+  lon: number,
+): string | null {
+  const locations = getStoredLocations();
+  const targetKey = getCoordinateKey(lat, lon);
+
+  for (const name in locations) {
+    const location = locations[name];
+    if (getCoordinateKey(location.lat, location.lon) === targetKey) {
+      return name;
+    }
+  }
+  return null;
 }
