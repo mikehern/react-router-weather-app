@@ -13,6 +13,8 @@ import { handleLocationAction } from "~/utils/locationActions";
 import { CompareWeatherButton } from "~/components/CompareWeatherButton";
 import { HourlyForecastList } from "~/components/HourlyForecastList";
 import { ErrorBoundary as SharedErrorBoundary } from "~/components/ErrorBoundary";
+import { WeatherSkeleton } from "~/components/WeatherSkeleton";
+import { NoResultsPlaceholder } from "~/components/NoResultsPlaceholder";
 
 export async function clientLoader() {
   try {
@@ -26,14 +28,14 @@ export async function clientLoader() {
         navigator.geolocation.getCurrentPosition(resolve, reject, {
           timeout: 10000,
         });
-      }
+      },
     );
 
     const { latitude, longitude } = position.coords;
 
     const [locationName, weatherData] = await Promise.all([
       getReverseGeocodedName(latitude, longitude).catch(
-        () => "Unknown Location"
+        () => "Unknown Location",
       ),
       fetchWeatherForecast(latitude, longitude),
     ]);
@@ -103,9 +105,12 @@ export default function Home({ loaderData, actionData }: Route.ComponentProps) {
   } = loaderData;
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
+  const isLoading = navigation.state === "loading";
 
   const [location, setLocation] = useState(locationName || "");
   const hasValidInput = location.trim().length > 0;
+
+  const hasResults = forecast.length > 0 && hourlyForecast.length > 0;
 
   // graceful UX fallback when geolocation is skipped or fails to still allow search
   if (error && !hasGeolocation) {
@@ -150,9 +155,16 @@ export default function Home({ loaderData, actionData }: Route.ComponentProps) {
           longitude={longitude!}
           actionData={actionData}
         />
-
-        <DailyForecastList forecast={forecast} />
-        <HourlyForecastList hourlyForecast={hourlyForecast} />
+        {isLoading ? (
+          <WeatherSkeleton />
+        ) : hasResults ? (
+          <>
+            <DailyForecastList forecast={forecast} />
+            <HourlyForecastList hourlyForecast={hourlyForecast} />
+          </>
+        ) : (
+          <NoResultsPlaceholder />
+        )}
       </div>
     </>
   );

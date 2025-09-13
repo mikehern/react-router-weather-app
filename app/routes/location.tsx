@@ -13,6 +13,8 @@ import { fetchWeatherForecast } from "~/services/weatherService";
 import { CompareWeatherButton } from "~/components/CompareWeatherButton";
 import { HourlyForecastList } from "~/components/HourlyForecastList";
 import { ErrorBoundary as SharedErrorBoundary } from "~/components/ErrorBoundary";
+import { WeatherSkeleton } from "~/components/WeatherSkeleton";
+import { NoResultsPlaceholder } from "~/components/NoResultsPlaceholder";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const url = new URL(request.url);
@@ -26,7 +28,7 @@ export async function loader({ request }: Route.LoaderArgs) {
     const locationData = await searchLocation(search);
     const weatherData = await fetchWeatherForecast(
       locationData.latitude,
-      locationData.longitude
+      locationData.longitude,
     );
 
     return {
@@ -59,6 +61,7 @@ export default function Location({
     loaderData;
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
+  const isLoading = navigation.state === "loading";
 
   const [location, setLocation] = useState(locationName || "");
 
@@ -70,6 +73,7 @@ export default function Location({
     location: locationName,
     coordinates: { latitude, longitude },
   };
+
   return (
     <>
       <div className="flex justify-between items-center">
@@ -88,17 +92,15 @@ export default function Location({
           longitude={longitude}
           actionData={actionData}
         />
-
-        {hasResults ? (
+        {isLoading ? (
+          <WeatherSkeleton />
+        ) : hasResults ? (
           <>
             <DailyForecastList forecast={forecast} />
             <HourlyForecastList hourlyForecast={hourlyForecast} />
           </>
         ) : (
-          <div className="p-4 text-xl">
-            No results found. Please enter a city and state or check the
-            spelling of the location.
-          </div>
+          <NoResultsPlaceholder />
         )}
       </div>
     </>
