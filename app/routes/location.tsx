@@ -61,7 +61,9 @@ export default function Location({
     loaderData;
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
-  const isLoading = navigation.state === "loading";
+  const isLoadingWeatherData =
+    navigation.state === "loading" &&
+    navigation.formData?.get("intent") === "search";
 
   const [location, setLocation] = useState(locationName || "");
 
@@ -92,7 +94,7 @@ export default function Location({
           longitude={longitude}
           actionData={actionData}
         />
-        {isLoading ? (
+        {isLoadingWeatherData ? (
           <WeatherSkeleton />
         ) : hasResults ? (
           <>

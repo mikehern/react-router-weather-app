@@ -102,7 +102,9 @@ export default function Home({ loaderData, actionData }: Route.ComponentProps) {
   } = loaderData;
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
-  const isLoading = navigation.state === "loading";
+  const isLoadingWeatherData =
+    navigation.state === "loading" &&
+    navigation.formData?.get("intent") === "search";
 
   const [location, setLocation] = useState(locationName || "");
   const hasValidInput = location.trim().length > 0;
@@ -152,7 +154,7 @@ export default function Home({ loaderData, actionData }: Route.ComponentProps) {
           longitude={longitude!}
           actionData={actionData}
         />
-        {isLoading ? (
+        {isLoadingWeatherData ? (
           <WeatherSkeleton />
         ) : hasResults ? (
           <>
