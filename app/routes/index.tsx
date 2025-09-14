@@ -15,6 +15,7 @@ import { HourlyForecastList } from "~/components/HourlyForecastList";
 import { ErrorBoundary as SharedErrorBoundary } from "~/components/ErrorBoundary";
 import { WeatherSkeleton } from "~/components/WeatherSkeleton";
 import { NoResultsPlaceholder } from "~/components/NoResultsPlaceholder";
+import { FullPageSkeleton } from "~/components/FullPageSkeleton";
 
 export async function clientLoader() {
   try {
@@ -86,11 +87,7 @@ export async function clientLoader() {
 clientLoader.hydrate = true;
 
 export function HydrateFallback() {
-  return (
-    <div className="max-w-5xl mx-auto my-8 px-4 font-sans">
-      Waiting for location permission...
-    </div>
-  );
+  return <FullPageSkeleton />;
 }
 
 export default function Home({ loaderData, actionData }: Route.ComponentProps) {
