@@ -2,6 +2,9 @@
 
 A weather forecasting application demonstrating mastery of React Router 7's Framework Mode, showcasing advanced patterns for client-side data loading rendering a loading UI skeleton. This project serves as a comprehensive example of transitioning from traditional React patterns to React Router 7's declarative data loading paradigms.
 
+Deployed at
+[https://react-router-weather-app.vercel.app/](https://react-router-weather-app.vercel.app/)
+
 ## Technical Challenge Overview
 
 This application addresses several complex technical challenges that demonstrate proficiency in modern React development:
