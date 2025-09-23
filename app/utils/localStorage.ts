@@ -10,6 +10,9 @@ interface StoredLocations {
 const LOCATIONS_KEY = "weather-app-locations";
 
 export function getStoredLocations(): StoredLocations {
+  // handle module import from a route performing server-side rendering
+  if (typeof window === "undefined") return {};
+
   const stored = localStorage.getItem(LOCATIONS_KEY);
   return stored ? JSON.parse(stored) : {};
 }
